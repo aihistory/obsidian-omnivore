@@ -361,8 +361,10 @@ turndownService.addRule('omnivoreAudio', {
   }
 })
 
-// 移除默认的段落规则
+// 移除默认的段落、代码相关规则，使用自定义规则
 turndownService.remove('p')
+turndownService.remove('pre')
+turndownService.remove('code')
 
 // 处理段落标签，确保段落之间有适当的间距
 turndownService.addRule('paragraphs', {
@@ -509,29 +511,33 @@ turndownService.addRule('omnivorePreBlocks', {
     const element = node as HTMLElement;
     let htmlContent = element.innerHTML || '';
     
-    // 处理复杂的<pre>结构，特别是包含多个<code>标签的情况
-    // 在</code><code>之间添加换行符
+    // 处理复杂的<pre>结构，保持原始换行和缩进
+    // 首先处理多个<code>标签之间的分隔
+    htmlContent = htmlContent.replace(/<\/code>\s*<code[^>]*>/gi, '\n');
+    
+    // 将<br>标签转换为换行符
+    htmlContent = htmlContent.replace(/<br[^>]*>/gi, '\n');
+    
+    // 移除HTML标签，但保持文本内容和换行
+    htmlContent = htmlContent.replace(/<[^>]*>/g, '');
+    
+    // 处理HTML实体，但保持原始的空格和换行结构
     htmlContent = htmlContent
-      .replace(/<\/code>\s*<code[^>]*>/gi, '\n')  // 在code标签之间添加换行
-      .replace(/<br[^>]*>/gi, '\n')               // 将<br>标签转换为换行符
-      .replace(/<[^>]*>/g, '')                    // 移除所有HTML标签
       .replace(/&nbsp;/g, ' ')                    // 将&nbsp;转换为普通空格
       .replace(/&lt;/g, '<')                     // 将&lt;转换为<
       .replace(/&gt;/g, '>')                     // 将&gt;转换为>
       .replace(/&amp;/g, '&')                    // 将&amp;转换为&
       .replace(/&quot;/g, '"')                   // 将&quot;转换为"
-      .replace(/&#39;/g, "'")                    // 将&#39;转换为'
-      .trim();
+      .replace(/&#39;/g, "'");                   // 将&#39;转换为'
     
-    if (!htmlContent) return '';
+    if (!htmlContent.trim()) return '';
     
-    // 清理文本，保持必要的换行和缩进
+    // 保持原始换行结构，只清理每行的末尾空白
     const cleanedText = htmlContent
-      .replace(/\n\s*\n\s*\n/g, '\n\n')  // 最多保留双换行
       .split('\n')                        // 按行分割
-      .map(line => line.trimEnd())        // 移除每行末尾空白，但保留开头缩进
-      .join('\n')                         // 重新连接
-      .trim();
+      .map(line => line.trimEnd())        // 移除每行末尾空白，但保留开头空格（缩进）
+      .join('\n')                         // 重新连接，保持所有原始换行
+      .trim();                            // 只移除整体的首尾空白
     
     // 检测代码语言
     const language = detectLanguage(cleanedText);
@@ -991,9 +997,11 @@ export const htmlToMarkdown = (html: string): string => {
       .replace(/\n\s*\n\s*\n/g, '\n\n') // 移除多余的空行，但保留双换行
       .trim()
     
-    // 手动处理段落分隔，但更智能地处理
-    // 只在真正的段落边界添加换行，而不是每个句号
-    result = result.replace(/([.!?])\s*([A-Z][a-z])/g, '$1 $2')
+    // 修复标题和段落的分隔问题
+    // 确保标题后面有换行，但不要错误地合并标题和段落
+    result = result
+      .replace(/(#{1,6}\s+[^\n]+)\s+([A-Z][^#])/g, '$1\n\n$2')  // 标题后添加双换行
+      .replace(/([.!?])\s+([A-Z][a-z]+(?:\s+[a-z]){2,})/g, '$1 $2')  // 只在确实是句子的情况下合并
     
     // 清理特定的文本，但保留换行
     result = result
