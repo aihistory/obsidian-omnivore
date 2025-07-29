@@ -1,0 +1,62 @@
+# Obsidian 插件开发模式
+
+## 插件生命周期
+参考 [main.ts](mdc:src/main.ts) 中的标准 Obsidian 插件结构：
+
+```typescript
+export default class OmnivorePlugin extends Plugin {
+    async onload() {
+        // 插件加载时的初始化
+        this.loadSettings();
+        this.addRibbonIcon();
+        this.addCommands();
+        this.addSettingTab();
+    }
+
+    async onunload() {
+        // 插件卸载时的清理
+        this.saveSettings();
+    }
+}
+```
+
+## 设置管理
+- 使用 `loadData()` 和 `saveData()` 管理插件设置
+- 在 [settingsTab.ts](mdc:src/settingsTab.ts) 中定义设置界面
+- 设置更改时自动保存并重新加载配置
+
+## 命令和快捷键
+```typescript
+this.addCommand({
+    id: 'sync-omnivore',
+    name: 'Sync with Omnivore',
+    callback: () => this.syncWithOmnivore(),
+    hotkeys: [{ modifiers: ["Mod", "Shift"], key: "O" }]
+});
+```
+
+## 文件操作
+- 使用 Obsidian 的 `TFile` 和 `TFolder` API
+- 通过 `app.vault.create()` 创建文件
+- 使用 `app.vault.read()` 和 `app.vault.modify()` 读写文件
+- 通过 `app.metadataCache.getFileCache()` 获取文件元数据
+
+## 用户界面
+- 使用 Obsidian 的内置 UI 组件
+- 通过 `Notice` API 显示用户消息
+- 使用 `Modal` 创建自定义对话框
+- 通过 `SuggestModal` 创建搜索建议
+
+## 事件处理
+- 监听文件系统事件：`app.vault.on('create', ...)`
+- 监听设置更改：`this.registerEvent(...)`
+- 正确处理事件清理，避免内存泄漏
+
+## 性能优化
+- 使用 `requestIdleCallback()` 进行非关键操作
+- 避免在 UI 线程中执行耗时操作
+- 使用防抖处理频繁触发的事件
+description:
+globs:
+alwaysApply: false
+---

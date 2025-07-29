@@ -1,0 +1,205 @@
+## RAG | NVIDIA | STRUCTURED DATA RAG | LLM | AI## The FAST-RAG system without complex embedding models or vector databasesZoom image will be displayed![](https://omnivore-image.historyai.top/700x448,sELL2JcyL2eqig6VdO6LzcVE1knNtpJbffok0UhPvrxc/https://miro.medium.com/v2/resize:fit:700/1*IVewxYQJPt4p7k2tI8ymXA.png)Source:[NVIDIA](https://github.com/NVIDIA/GenerativeAIExamples/tree/main/RAG/examples/advanced_rag/structured_data_rag)**Ever** wondered if you could leverage the power of Retrieval Augmented Generation (RAG) **without the complexity of embedding models or vector databases**?
+
+There is an innovative approach to RAG using structured CSV data, powered by models from the NVIDIA API Catalog and orchestrated by PandasAI.
+
+While exploring the NVIDIA repository on GitHub, I came across an interesting thing, named a structured data RAG.
+
+Zoom image will be displayed![](https://omnivore-image.historyai.top/700x318,sN32GRRGC_pqJcx2TAIhZla1uHyuEKoM-hPFIzEDnQ7g/https://miro.medium.com/v2/resize:fit:700/1*VRO0EkEaejUkd8Zv32p5Xw.png)\[Source:[here](https://github.com/NVIDIA/GenerativeAIExamples/tree/main/RAG/examples/advanced_rag)\]Let's start with,## What is Retrieval Augmented Generation (RAG)?
+
+First, let’s briefly recap RAG.
+
+Traditionally, Large Language Models (LLMs) generate responses solely based on the data they were trained on.
+
+This can lead to issues like:> **Hallucinations:** Generating factually incorrect or nonsensical information.
+>
+> **Outdated information:** Lacking knowledge of recent events or developments after their training cutoff.
+>
+> **Lack of domain-specific knowledge:** Unable to answer questions about proprietary or niche data.
+
+RAG addresses these limitations by augmenting the LLM’s knowledge with external, up-to-date, and domain-specific information.
+
+The general RAG workflow typically involves:1.  **Retrieval:** When a user asks a question, a retrieval mechanism (often using embeddings and vector databases) searches a vast knowledge base (documents, articles, web pages, etc.) for relevant information.
+2.  **Augmentation:** The retrieved information is then provided to the LLM as additional context alongside the user’s original query.
+3.  **Generation:** The LLM uses this augmented prompt to generate a more informed, accurate, and contextually relevant response.## ***What is Structured RAG, Really?
+
+It’s Logic vs.
+
+Vibes***Let me give you a full picture in detail.![](https://omnivore-image.historyai.top/657x658,slCCz9fjKRg5RbVE5jcRc01mwCsJWdjYxMWKzwS1cNoI/https://miro.medium.com/v2/resize:fit:657/1*AAuvsXrFXwfpNmPdtFgbfw.png)Created by AuthorThe AI industry loves its jargon, so let’s cut through it.
+
+The difference between Normal RAG and Structured RAG is a fundamental shift in philosophy.**Normal RAG operates on “Vibes” (Semantic Similarity).** It’s like asking a very knowledgeable, enthusiastic friend who has speed-read every book on a topic.
+
+It uses vector embeddings to find text chunks that have a similar *geometric* position in a high-dimensional space.
+
+It understands the “gist” and is brilliant for exploratory questions.
+
+But its reliance on proximity means it can easily confuse nuance for noise.**Structured RAG operates on “Logic” (Symbolic Representation).** It’s like putting a legal expert on the witness stand inside a library where every book has been meticulously cross-referenced.
+
+This expert doesn’t care about “semantic feel.” They operate on a knowledge graph built from facts, entities, actions, and the explicit relationships between them.
+
+It answers questions not by finding what’s *near*, but by finding what is *true* based on a logical query.## A Deep Dive into the Structured RAG PipelineThe power and precision of Structured RAG aren’t born at query time.
+
+They are forged in the intense heat of its ingestion pipeline.
+
+This isn’t just about indexing; it’s about meticulously building a second, structured “brain” for your data.
+
+In my experience, skimping on any of these steps is what separates a demo-worthy toy from a production-ready tool.> ***Step 1: Intelligent Parsing and Layout-Aware Chunking***It all starts with the raw document.
+
+A standard RAG might just extract text and split it every 512 tokens.
+
+This is the first and most common point of failure.
+
+A single critical table, a legal clause, or a technical specification could be sliced in half, destroying its meaning.
+
+Structured RAG, by contrast, uses **layout-aware parsing**.
+
+It sees a PDF not as a river of text, but as a collection of titles, paragraphs, tables, lists, and footers.
+
+The chunking is therefore semantic.
+
+It breaks the text along these natural boundaries, ensuring each chunk is a logically complete unit.
+
+This preserves the document’s inherent hierarchy, which is critical for the next steps.> ***Step 2: High-Fidelity Knowledge Extraction***This is the core of the process, where we translate human language into machine logic.
+
+For each chunk, a sophisticated extraction process identifies the key structural elements.
+
+This is often done using a powerful LLM (like GPT-4) guided by a very specific prompt, or a fine-tuned model for higher accuracy.
+
+The goal is to extract a set of “triples” (Subject-Predicate-Object).-   **Entities (The “Who/What”):** “Project Manager,” “Planning Phase,” “Acme Corp.”
+-   **Actions/Events (The “Did What”):** “approved,” “reviewed,” “initiated.”
+-   **Properties/Attributes (The “Details”):** “start date,” “budget,” “owner.”> A sentence like “The project manager, John Doe, approved the budget on Oct 26th” becomes a set of structured facts:
+> { subject: “John ”, relation: “is\_a”, object: “Project Manager” }
+> { subject: “John ”, relation: “approved”, object: “budget” }
+> { subject: “budget”, relation: “has\_approval\_date”, object: “2023 10–23” }
+>
+> ***Step 3: Knowledge Graph & Multi-Index Construction***These extracted triples aren’t just stored in a list; they are woven into a **Knowledge Graph** (using a database like Neo4j) or organized into relational tables (like PostgreSQL with JSONB).
+
+This graph is the system’s “long-term memory” of how concepts relate to each other.
+
+Simultaneously, the system builds a series of highly efficient **inverted indexes**.
+
+If you’ve ever used the index at the back of a textbook, you understand this concept.
+
+Instead of searching the whole book for a term, you look up the term in the index and it gives you the exact page numbers.
+
+That’s what an inverted index does.-   **Entity Index:** Maps John Doe → \[DocID\_12, Chunk\_3\]
+-   **Action Index:** Maps approved → \[DocID\_12, Chunk\_3\]
+-   **Topic Index:** Maps Finance > Budgeting → \[DocID\_12, Chunk\_3\]This multi-index approach allows for lightning-fast lookups on structured data, forming the backbone of the query engine.## The Query Process:When a user finally asks a question, the Structured RAG system executes a multi-stage process that prioritizes precision above all else.**1\.
+
+Query Translation and Structuring**
+The natural language query is first passed to a QueryTranslator.
+
+This module, often a fine-tuned LLM or a rule-based parser, deconstructs the user’s intent into a formal, structured query.
+
+A question like *“Show me all contracts approved by Alice for Acme Corp related to the Q4 initiative”* becomes a symbolic expression:{
+"type": "AND",
+"clauses": \[
+{ "field": "entity", "value": "Alice" },
+{ "field": "entity", "value": "Acme Corp" },
+{ "field": "action", "value": "approved" },
+{ "field": "topic", "value": "Q4 initiative" }
+\]
+}**2\.
+
+Multi-Index Symbolic Search**
+This structured query is then executed across the inverted indexes using **set operations**.-   It fetches the set of document IDs where entity = “Alice”.
+-   It fetches the set of IDs where entity = “Acme Corp”.
+-   It fetches the set of IDs where action = “approved”.
+-   It then calculates the **intersection** of these sets, finding only the document IDs that appear in *all* of them.
+
+This is a deterministic, logical operation.
+
+The result is a small, highly relevant set of candidate documents, guaranteed to contain the exact combination of facts the user asked for.**3\.
+
+The Role of Fallback Mechanisms**
+But what if the query is vague, like “What are the main risks we face?” The structured search might return few or no results.
+
+This is where a mature Structured RAG system shows its intelligence.
+
+If the confidence of the symbolic search is low, it **falls back** to a traditional dense vector search.
+
+It uses embeddings to find semantically related chunks as a secondary, “best-effort” approach.
+
+This creates a powerful hybrid: you get the precision of symbolic search when possible, and the semantic flexibility of vector search when necessary.1.1 Receive incoming conversation message
+└── Includes: message text, timestamp, sender ID, message ID1.2 Store message in persistent memory store
+└── Indexed by conversation/session ID for historical context
+very message from a user (and system) is not just stored temporarily in RAM.
+
+It
+The system can retrieve and use past context even days/weeks later.
+
+Multiple sessions (conversations) can be separated and tracked individually.2.1 Extract structured knowledge using:
+└── extractKnowledgeFromText(message.text)2.2 Identify:
+├── Named entities (people, places, organizations)
+├── Actions (verbs, events, intents)
+└── Hierarchical topics (themes, domains)2.3 Merge into existing conversation knowledge base
+└── Deduplicate using canonical entity matching or hashes3.1 Create semantic references linking:
+└── Extracted knowledge ⇔ Message ID + position3.2 Update primary ConversationIndex:
+└── Maps terms/entities to semantic anchors in the memory4.1 Entity Index
+└── Indexed by normalized entity names (e.g., “John Doe” → Person)4.2 Topic Index
+└── Hierarchical mapping (e.g., “Finance > Taxes > Refunds”)4.3 Action Index
+└── Captures verbs, activities, and relations (e.g., “filed tax return”)4.4 Additional Indexes
+├── Property Index (e.g., attributes, qualities)
+├── Message Text Index (full text and semantic embedding)
+└── Related Terms Index (synonyms, aliases)5.1 Accept natural language query from user5.2 Translate query → structured search query
+└── Using: SearchQueryTranslator (e.g., searchLang.ts:42\-55)
+└── Can involve filtering by entity, topic, action, etc.6.1 Simultaneously query:
+├── Entity Index
+├── Topic Index
+└── Action Index
+└── Others (property, text, etc.)6.2 Combine results using set operations:
+├── Intersection (AND)
+├── Union (OR)
+└── Subtraction (NOT)
+└── Ref: conversation.ts:609\-643, 841\-8557.1 If structured search yields low confidence or few results:
+└── Fallback to:
+├── Dense vector RAG search
+├── Full-text similarity (semantic)
+└── Rule-based or keyword fallback
+└── Ref: searchLang.ts:69\-848.1 Organize top results into final context window8.2 If total context > model token limit:
+└── Chunk intelligently (by paragraph/message boundaries)
+└── Ref: answerGenerator.ts:126\-1378.3 Parallelize chunk inference (optional)
+└── Ref: answerGenerator.ts:184\-2048.4 Use “fast stop” heuristic
+└── If early chunk yields sufficient answer, stop remaining calls9.1 Generate natural language answer using selected chunks9.2 Attach:
+├── Referenced message IDs or text snippets
+├── Source metadata (timestamps, sender)
+└── Confidence or traceability score**4\.
+
+Final Answer Generation with Traceability**
+The top-ranked, filtered, and verified chunks of text are passed to a final LLM.
+
+But its job is radically different now.
+
+It is not asked to “answer from its knowledge.” It is instructed: **“Using only the provided text, synthesize an answer and cite the source for each fact.”**Zoom image will be displayed![](https://omnivore-image.historyai.top/700x376,s7XErriK1WmzvjLBAqRZe-28kEHfNW6GvBuGiRid4aMA/https://miro.medium.com/v2/resize:fit:700/1*0KIwEtqJvKfsEWgUCQkpig.png)Part1:Retrieval flow![](https://omnivore-image.historyai.top/700x454,sl0xlvcZL_ES_PsYXLwjUqVYayaS6oUNx1LVveUvKusk/https://miro.medium.com/v2/resize:fit:700/1*NJ0D7fCok-EoVUGiokM4pw.png)Part 2 : Retrieval flow \[Image by author\]The final output isn’t just an answer; it’s a verifiable report, often with footnotes linking back to the source document ID, page, and even the text snippet itself.
+
+This traceability is the ultimate feature for any enterprise that values trust and auditability.## Why Isn’t Everyone Using Structured RAG?
+
+If it’s so powerful, why isn’t it the default?
+
+Because, frankly, it’s hard.
+
+The pragmatic truth is that Structured RAG comes with significant trade-offs that you must be aware of.**High Upfront Cost:** The preprocessing and ingestion pipeline is computationally expensive and complex.
+
+Designing the extraction schemas and building the knowledge graph requires significant domain expertise and engineering effort.**Schema Rigidity:** You are limited by what you decide to extract.
+
+If you didn’t create a “relationship” for causality, you can’t ask causal questions.
+
+The system is only as smart as the ontology you design for it.
+
+Adapting to new domains or new types of queries can require a redesign of the schema.**Loss of Nuance:** By abstracting text into structured triples, you can sometimes lose the subtle narrative context, sarcasm, or implicit meaning that lives between the lines.
+
+It’s a trade-off between ambiguity and precision.## The Final VerdictThe choice between Normal RAG and Structured RAG is not about which is **better** in a vacuum; it’s about aligning the tool with the stakes of the task.
+
+Zoom image will be displayed![](https://omnivore-image.historyai.top/700x354,s8zI5-K1fNXtSBlCWW0CbX--yvH_p7eqoMwhpG3nuz_M/https://miro.medium.com/v2/resize:fit:700/1*tOvcdzqF5swhJXrAJhky7w.png)Zoom image will be displayed![](https://omnivore-image.historyai.top/700x327,s3dh5OhwQFPd2kl-_1jX5yb37AQ81Jb6DCoFH94Pkx6o/https://miro.medium.com/v2/resize:fit:700/1*1ytfNPM2z3zr2SC6PbSqbA.png)As our industry matures, we must move beyond building impressive demos and start engineering reliable systems.
+
+Normal RAG was the brilliant spark that ignited the revolution.
+
+But Structured RAG provides the disciplined engineering framework required to build the trustworthy, industrial-strength AI of the future.## If you have found this article insightfulIt is a proven fact that “**Generosity makes you a happier person**”; therefore, Give claps to the article if you liked it.
+
+If you found this article insightful, follow me on [**LinkedIn**](https://www.linkedin.com/in/chinmay-bhalerao-6b5284137/) and [**Medium**](https://medium.com/@BH_Chinmay).
+
+You can also [**subscribe**](https://medium.com/@BH_Chinmay) to get notified when I publish articles.
+
+Let’s create a community!
+
+Thanks for your support!## You can read my other blogs related to :## Signing off,
+Chinmay

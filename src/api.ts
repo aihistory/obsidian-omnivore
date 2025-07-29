@@ -16,12 +16,20 @@ interface GetContentResponse {
   }[]
 }
 
-const baseUrl = (endpoint: string) => endpoint.replace(/\/api\/graphql$/, '')
+export const baseUrl = (endpoint: string) => {
+  if (!endpoint) {
+    throw new Error(
+      'API endpoint is not configured. Please set the API endpoint in settings.',
+    )
+  }
+  return endpoint.replace(/\/api\/graphql$/, '')
+}
 
 const getContent = async (
   endpoint: string,
   apiKey: string,
   libraryItemIds: string[],
+  format: ItemFormat = 'highlightedMarkdown',
 ): Promise<GetContentResponse> => {
   const response = await requestUrl({
     url: `${baseUrl(endpoint)}/api/content`,
@@ -30,7 +38,7 @@ const getContent = async (
       'Content-Type': 'application/json',
       Authorization: apiKey,
     },
-    body: JSON.stringify({ libraryItemIds, format: 'highlightedMarkdown' }),
+    body: JSON.stringify({ libraryItemIds, format }),
   })
 
   return response.json
@@ -58,11 +66,13 @@ const fetchContentForItems = async (
   endpoint: string,
   apiKey: string,
   items: Item[],
+  format: ItemFormat = 'highlightedMarkdown',
 ) => {
   const content = await getContent(
     endpoint,
     apiKey,
     items.map((a) => a.id),
+    format,
   )
 
   await Promise.allSettled(
@@ -99,30 +109,53 @@ export const getItems = async (
   includeContent = false,
   format: ItemFormat = 'html',
 ): Promise<[Item[], boolean]> => {
-  const omnivore = new Omnivore({
-    authToken: apiKey,
-    baseUrl: baseUrl(endpoint),
-    timeoutMs: 10000, // 10 seconds
-  })
+  try {
+    const omnivore = new Omnivore({
+      authToken: apiKey,
+      baseUrl: baseUrl(endpoint),
+      timeoutMs: 10000, // 10 seconds
+    })
 
-  const response = await omnivore.items.search({
-    after,
-    first,
-    query: `${updatedAt ? 'updated:' + updatedAt : ''} sort:saved-asc ${query}`,
-    includeContent: false,
-    format,
-  })
+    const response = await omnivore.items.search({
+      after,
+      first,
+      query: `${updatedAt ? 'updated:' + updatedAt : ''} sort:saved-asc ${query}`,
+      includeContent,
+      format,
+    })
 
-  const items = response.edges.map((e) => e.node)
-  if (includeContent && items.length > 0) {
-    try {
-      await fetchContentForItems(endpoint, apiKey, items)
-    } catch (error) {
-      console.error('Error fetching content', error)
+    const items = response.edges.map((e) => e.node)
+    if (includeContent && items.length > 0) {
+      try {
+        await fetchContentForItems(endpoint, apiKey, items, format)
+      } catch (error) {
+        console.error('Error fetching content', error)
+      }
+    }
+
+    return [items, response.pageInfo.hasNextPage]
+  } catch (error) {
+    console.error('Error in getItems:', error)
+    
+    // 提供更详细的错误信息
+    if (error.message?.includes('Unexpected server error')) {
+      throw new Error(
+        `服务器错误 (500): 请检查您的API密钥是否正确，或者服务器是否正常运行。\n端点: ${endpoint}\n错误详情: ${error.message}`
+      )
+    } else if (error.message?.includes('Unauthorized')) {
+      throw new Error(
+        `认证失败: 请检查您的API密钥是否正确。\n端点: ${endpoint}`
+      )
+    } else if (error.message?.includes('Network error')) {
+      throw new Error(
+        `网络错误: 无法连接到服务器。\n端点: ${endpoint}\n请检查网络连接和端点URL是否正确。`
+      )
+    } else {
+      throw new Error(
+        `API请求失败: ${error.message}\n端点: ${endpoint}`
+      )
     }
   }
-
-  return [items, response.pageInfo.hasNextPage]
 }
 
 export const deleteItem = async (

@@ -1,0 +1,70 @@
+# 测试标准
+
+## 测试框架
+- 使用 **Jest** 作为测试框架
+- 测试文件放在 `src/__tests__/` 目录
+- 测试文件命名：`*.test.ts` 或 `*.spec.ts`
+
+## 测试配置
+参考 [jest.config.js](mdc:jest.config.js) 配置：
+- 使用 `ts-jest` 处理 TypeScript
+- 配置测试覆盖率报告
+- 支持 CI/CD 集成测试
+
+## 测试结构
+```typescript
+describe('OmnivorePlugin', () => {
+    let plugin: OmnivorePlugin;
+    
+    beforeEach(() => {
+        // 设置测试环境
+        plugin = new OmnivorePlugin();
+    });
+    
+    afterEach(() => {
+        // 清理测试环境
+        plugin.onunload();
+    });
+    
+    it('should sync with Omnivore API', async () => {
+        // 测试实现
+    });
+});
+```
+
+## 测试类型
+- **单元测试**: 测试独立函数和类方法
+- **集成测试**: 测试 API 集成和数据流
+- **端到端测试**: 测试完整的用户工作流
+- **快照测试**: 测试 UI 组件渲染
+
+## Mock 策略
+- 使用 Jest 的 `jest.mock()` 模拟外部依赖
+- 模拟 Omnivore API 响应
+- 模拟 Obsidian API 调用
+- 使用 `__mocks__` 目录存放模拟文件
+
+## 测试覆盖率
+- 目标覆盖率：80% 以上
+- 覆盖核心业务逻辑
+- 覆盖错误处理路径
+- 覆盖边界条件
+
+## 测试命令
+```bash
+# 运行所有测试
+yarn test
+
+# 监听模式
+yarn test:watch
+
+# CI 模式
+yarn test:ci
+
+# 生成覆盖率报告
+yarn test:coverage
+```
+description:
+globs:
+alwaysApply: false
+---

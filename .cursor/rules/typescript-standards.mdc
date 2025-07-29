@@ -1,0 +1,47 @@
+# TypeScript 编码标准
+
+## 代码风格
+- 使用 **分号** 结束语句
+- 使用 **双引号** 作为字符串分隔符
+- 使用 **驼峰命名法** 命名变量和函数
+- 使用 **PascalCase** 命名类和接口
+- 使用 **UPPER_SNAKE_CASE** 命名常量
+
+## TypeScript 配置
+- 启用 `strictNullChecks` 和 `noImplicitAny`
+- 使用 `ES2021` 目标版本
+- 启用 `isolatedModules` 和 `esModuleInterop`
+
+## 导入规范
+```typescript
+// 第三方库导入
+import { DateTime } from 'luxon';
+import _ from 'lodash';
+
+// Obsidian API 导入
+import { Plugin, TFile, Notice } from 'obsidian';
+
+// 本地模块导入
+import { OmnivoreAPI } from './api';
+import { OmnivoreSettings } from './settings';
+```
+
+## 类型定义
+- 为所有函数参数和返回值提供类型注解
+- 使用接口定义对象结构
+- 优先使用 `interface` 而非 `type` 定义对象类型
+- 使用联合类型处理可选值
+
+## 错误处理
+- 使用 try-catch 包装异步操作
+- 提供有意义的错误消息
+- 使用 Obsidian 的 `Notice` API 显示用户友好的错误信息
+
+## 异步编程
+- 优先使用 `async/await` 而非 Promise 链
+- 正确处理异步操作的错误
+- 使用 `Promise.all()` 并行处理多个异步操作
+description:
+globs:
+alwaysApply: false
+---

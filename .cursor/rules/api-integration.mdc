@@ -1,0 +1,50 @@
+# Omnivore API 集成规范
+
+## API 客户端
+参考 [api.ts](mdc:src/api.ts) 中的 Omnivore API 集成模式：
+
+```typescript
+import { OmnivoreAPI } from '@omnivore-app/api';
+
+export class OmnivoreService {
+    private api: OmnivoreAPI;
+    
+    constructor(apiKey: string) {
+        this.api = new OmnivoreAPI(apiKey);
+    }
+}
+```
+
+## 错误处理
+- 处理网络错误和 API 限制
+- 提供用户友好的错误消息
+- 实现重试机制处理临时故障
+- 记录详细的错误日志用于调试
+
+## 数据同步
+- 使用增量同步减少 API 调用
+- 缓存已同步的数据避免重复请求
+- 实现冲突解决策略处理数据冲突
+- 支持离线模式下的本地操作
+
+## 搜索和过滤
+- 支持 Omnivore 的高级搜索语法
+- 实现本地搜索优化性能
+- 提供搜索建议和自动完成
+- 支持标签和分类过滤
+
+## 数据转换
+- 将 Omnivore 数据转换为 Obsidian 格式
+- 保持原始数据的完整性
+- 支持自定义模板和格式化
+- 处理特殊字符和 Markdown 转义
+
+## 性能优化
+- 使用分页处理大量数据
+- 实现后台同步避免阻塞 UI
+- 缓存 API 响应减少重复请求
+- 使用流式处理处理大文件
+description:
+globs:
+alwaysApply: false
+---

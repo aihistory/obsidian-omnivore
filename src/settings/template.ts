@@ -10,6 +10,7 @@ import {
   removeFrontMatterFromContent,
   siteNameFromUrl,
   snakeToCamelCase,
+  htmlToMarkdown,
 } from '../util'
 import { HighlightManagerId } from '.'
 
@@ -67,6 +68,7 @@ export type ArticleView =
       dateSaved: string
       highlights: HighlightView[]
       content?: string
+      contentReader?: string
       datePublished?: string
       fileAttachment?: string
       description?: string
@@ -160,7 +162,7 @@ const functionMap: FunctionMap = {
 }
 
 const getOmnivoreUrl = (item: Item) => {
-  return `https://omnivore.app/me/${item.slug}`
+  return `https://omnivore.historyai.top/me/${item.slug}`
 }
 
 export const renderFilename = (
@@ -228,7 +230,7 @@ export const renderItemContent = async (
         template,
         highlightRenderOption,
       ),
-      highlightUrl: `https://omnivore.app/me/${item.slug}#${highlight.id}`,
+      highlightUrl: `https://omnivore.historyai.top/me/${item.slug}#${highlight.id}`,
       highlightID: highlight.id.slice(0, 8),
       dateHighlighted: highlight.updatedAt
         ? formatDate(highlight.updatedAt, dateHighlightedFormat)
@@ -260,7 +262,7 @@ export const renderItemContent = async (
   const articleView: ArticleView = {
     id: item.id,
     title: item.title,
-    omnivoreUrl: `https://omnivore.app/me/${item.slug}`,
+    omnivoreUrl: `https://omnivore.historyai.top/me/${item.slug}`,
     siteName,
     originalUrl: item.originalArticleUrl || item.url,
     author: item.author || 'unknown',
@@ -268,7 +270,8 @@ export const renderItemContent = async (
     dateSaved,
     highlights,
     content:
-      item.contentReader === 'WEB' ? item.content || undefined : undefined,
+      item.contentReader === 'WEB' ? (item.content ? htmlToMarkdown(item.content) : undefined) : undefined,
+    contentReader: item.contentReader || undefined,
     datePublished,
     fileAttachment,
     description: item.description || undefined,
@@ -324,6 +327,7 @@ export const renderItemContent = async (
       const key = aliasedVariables[1] || variable
       if (
         variable === 'tags' &&
+        'labels' in articleView &&
         articleView.labels &&
         articleView.labels.length > 0
       ) {
@@ -333,7 +337,7 @@ export const renderItemContent = async (
         continue
       }
 
-      const value = (articleView as any)[articleVariable]
+      const value = ('labels' in articleView) ? (articleView as any)[articleVariable] : undefined
       if (value) {
         // if variable is in article, use it
         frontMatter[key] = value

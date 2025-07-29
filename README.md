@@ -1,19 +1,19 @@
 # obsidian-omnivore
 
-This plugin imports your saved [Omnivore](https://omnivore.app/) articles and highlights into Obsidian.
+This plugin imports your saved [Omnivore](https://omnivore.historyai.top/) articles and highlights into Obsidian.
 
 ## Features
 
 * Import your highlights and saved article
 * Create graphs based on Omnivore data
-* Filter imported data using Omnivores [advanced search syntax](https://docs.omnivore.app/using/search.html)
+* Filter imported data using Omnivores [advanced search syntax](https://docs.omnivore.historyai.top/using/search.html)
 * Custom templates for imported data
 
 ## Installation
 
 1. Install the plugin from the community or build it from source and load unpacked plugin
-2. Sign up for an [Omnivore account](https://omnivore.app)
-3. Go to [Omnivore](https://omnivore.app/settings/api) and Create an API key
+2. Sign up for an [Omnivore account](https://omnivore.historyai.top)
+3. Go to [Omnivore](https://omnivore.historyai.top/settings/api) and Create an API key
 4. Open settings and add your api key
 
 ## Usage

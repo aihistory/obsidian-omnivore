@@ -50,12 +50,14 @@
 	},
 	"dependencies": {
 		"@omnivore-app/api": "^1.0.3",
+		"@types/turndown": "^5.0.5",
 		"diff-match-patch": "^1.0.5",
 		"lodash": "^4.17.21",
 		"luxon": "^3.1.1",
 		"markdown-escape": "^2.0.0",
 		"mustache": "^4.2.0",
-		"out-of-character": "^1.2.1"
+		"out-of-character": "^1.2.1",
+		"turndown": "^7.2.0"
 	},
 	"volta": {
 		"node": "18.18.0",

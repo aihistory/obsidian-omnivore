@@ -1,0 +1,60 @@
+# 构建和部署规范
+
+## 构建工具
+- 使用 **esbuild** 进行快速构建
+- 配置参考 [esbuild.config.mjs](mdc:esbuild.config.mjs)
+- 支持开发和生产环境构建
+
+## 构建脚本
+参考 [package.json](mdc:package.json) 中的脚本：
+```bash
+# 开发模式
+yarn dev
+
+# 生产构建
+yarn build
+
+# 代码检查
+yarn lint
+yarn lint:fix
+
+# 代码格式化
+yarn format
+```
+
+## 版本管理
+- 使用语义化版本控制
+- 自动版本更新通过 [version-bump.mjs](mdc:version-bump.mjs)
+- 更新 [manifest.json](mdc:manifest.json) 和 [versions.json](mdc:versions.json)
+
+## 发布流程
+参考 [release.config.js](mdc:release.config.js) 配置：
+- 使用 semantic-release 自动化发布
+- 自动生成变更日志
+- 支持 GitHub Actions CI/CD
+
+## 代码质量
+- ESLint 配置参考 [.eslintrc](mdc:.eslintrc)
+- Prettier 配置参考 [.prettierrc](mdc:.prettierrc)
+- 提交前自动运行代码检查
+
+## 依赖管理
+- 使用 Yarn 作为包管理器
+- 锁定版本通过 [yarn.lock](mdc:yarn.lock)
+- 定期更新依赖版本
+
+## 环境配置
+- 开发环境：热重载和调试支持
+- 生产环境：代码压缩和优化
+- 测试环境：完整的测试套件
+
+## 部署检查清单
+- [ ] 所有测试通过
+- [ ] 代码检查无错误
+- [ ] 版本号已更新
+- [ ] 变更日志已更新
+- [ ] 构建产物验证
+description:
+globs:
+alwaysApply: false
+---

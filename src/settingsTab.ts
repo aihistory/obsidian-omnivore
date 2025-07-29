@@ -40,8 +40,8 @@ export class OmnivoreSettingTab extends PluginSettingTab {
           fragment.append(
             'You can create an API key at ',
             fragment.createEl('a', {
-              text: 'https://omnivore.app/settings/api',
-              href: 'https://omnivore.app/settings/api',
+              text: 'https://omnivore.historyai.top/settings/api',
+href: 'https://omnivore.historyai.top/settings/api',
             }),
           )
         }),
@@ -55,6 +55,53 @@ export class OmnivoreSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings()
           }),
       )
+
+    new Setting(containerEl)
+      .setName('API Endpoint')
+      .setDesc(
+        createFragment((fragment) => {
+          fragment.append(
+            'Enter the Omnivore server API endpoint. Leave empty to use the default production server. ',
+            fragment.createEl('br'),
+            'For self-hosted instances, use your server URL (e.g., https://your-server.com/api/graphql)',
+          )
+        }),
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder('https://api-prod.omnivore.historyai.top/api/graphql')
+          .setValue(this.plugin.settings.endpoint)
+          .onChange(async (value) => {
+            // 验证URL格式
+            if (value && !this.isValidUrl(value)) {
+              new Notice(
+                'Please enter a valid URL starting with http:// or https://',
+              )
+              return
+            }
+            this.plugin.settings.endpoint = value
+            await this.plugin.saveSettings()
+          }),
+      )
+      .addExtraButton((button) => {
+        button
+          .setIcon('reset')
+          .setTooltip('Reset to default endpoint')
+          .onClick(async () => {
+            this.plugin.settings.endpoint = DEFAULT_SETTINGS.endpoint
+            await this.plugin.saveSettings()
+            this.display()
+            new Notice('API endpoint reset to default')
+          })
+      })
+      .addExtraButton((button) => {
+        button
+          .setIcon('test-tube')
+          .setTooltip('Test API connection')
+          .onClick(async () => {
+            await this.testApiConnection()
+          })
+      })
 
     /**
      * Query Options
@@ -86,8 +133,8 @@ export class OmnivoreSettingTab extends PluginSettingTab {
           fragment.append(
             'See ',
             fragment.createEl('a', {
-              text: 'https://docs.omnivore.app/using/search',
-              href: 'https://docs.omnivore.app/using/search',
+              text: 'https://docs.omnivore.historyai.top/using/search',
+href: 'https://docs.omnivore.historyai.top/using/search',
             }),
             " for more info on search query syntax. Changing this would reset the 'Last Sync' timestamp",
           )
@@ -286,7 +333,7 @@ export class OmnivoreSettingTab extends PluginSettingTab {
             'Available metadata can be found at ',
             fragment.createEl('a', {
               text: 'Reference',
-              href: 'https://docs.omnivore.app/integrations/obsidian.html#front-matter',
+              href: 'https://docs.omnivore.historyai.top/integrations/obsidian.html#front-matter',
             }),
             fragment.createEl('br'),
             fragment.createEl('br'),
@@ -322,7 +369,7 @@ export class OmnivoreSettingTab extends PluginSettingTab {
             'Enter template to render articles with ',
             fragment.createEl('a', {
               text: 'Reference',
-              href: 'https://docs.omnivore.app/integrations/obsidian.html#controlling-the-layout-of-the-data-imported-to-obsidian',
+              href: 'https://docs.omnivore.historyai.top/integrations/obsidian.html#controlling-the-layout-of-the-data-imported-to-obsidian',
             }),
             fragment.createEl('br'),
             fragment.createEl('br'),
@@ -530,19 +577,6 @@ export class OmnivoreSettingTab extends PluginSettingTab {
     })
 
     new Setting(advancedSettings)
-      .setName('API Endpoint')
-      .setDesc("Enter the Omnivore server's API endpoint")
-      .addText((text) =>
-        text
-          .setPlaceholder('API endpoint')
-          .setValue(this.plugin.settings.endpoint)
-          .onChange(async (value) => {
-            this.plugin.settings.endpoint = value
-            await this.plugin.saveSettings()
-          }),
-      )
-
-    new Setting(advancedSettings)
       .setName('Front Matter Template')
       .setDesc(
         createFragment((fragment) => {
@@ -550,7 +584,7 @@ export class OmnivoreSettingTab extends PluginSettingTab {
             'Enter YAML template to render the front matter with ',
             fragment.createEl('a', {
               text: 'Reference',
-              href: 'https://docs.omnivore.app/integrations/obsidian.html#front-matter-template',
+              href: 'https://docs.omnivore.historyai.top/integrations/obsidian.html#front-matter-template',
             }),
             fragment.createEl('br'),
             fragment.createEl('br'),
@@ -588,7 +622,7 @@ export class OmnivoreSettingTab extends PluginSettingTab {
       })
 
     const help = containerEl.createEl('p')
-    help.innerHTML = `For more information, please visit our <a href="https://github.com/omnivore-app/obsidian-omnivore">GitHub page</a>, email us at <a href="mailto:feedback@omnivore.app">feedback@omnivore.app</a> or join our <a href="https://discord.gg/h2z5rppzz9">Discord server</a>.`
+    help.innerHTML = `For more information, please visit our <a href="https://github.com/omnivore-app/obsidian-omnivore">GitHub page</a>, email us at <a href="mailto:feedback@omnivore.historyai.top">feedback@omnivore.historyai.top</a> or join our <a href="https://discord.gg/h2z5rppzz9">Discord server</a>.`
 
     // script to make collapsible sections
     const coll = document.getElementsByClassName('omnivore-collapsible')
@@ -609,5 +643,73 @@ export class OmnivoreSettingTab extends PluginSettingTab {
 
   displayBlock(block: HTMLElement, display: boolean) {
     block.style.display = display ? 'block' : 'none'
+  }
+
+  private isValidUrl(value: string): boolean {
+    try {
+      const url = new URL(value)
+      return url.protocol === 'http:' || url.protocol === 'https:'
+    } catch {
+      return false
+    }
+  }
+
+  private async testApiConnection() {
+    const endpoint = this.plugin.settings.endpoint
+    const apiKey = this.plugin.settings.apiKey
+
+    if (!endpoint) {
+      new Notice('❌ 请先配置API端点')
+      return
+    }
+
+    if (!apiKey) {
+      new Notice('❌ 请先配置API密钥')
+      return
+    }
+
+    try {
+      new Notice('🔍 正在测试API连接...')
+      
+      // 测试基本连接
+      const testQuery = {
+        query: `
+          query {
+            me {
+              id
+              name
+            }
+          }
+        `
+      }
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': apiKey,
+        },
+        body: JSON.stringify(testQuery),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      
+      if (data.errors) {
+        throw new Error(`GraphQL错误: ${data.errors[0]?.message || '未知错误'}`)
+      }
+
+      if (data.data?.me) {
+        new Notice(`✅ 连接成功！用户: ${data.data.me.name}`)
+      } else {
+        new Notice('⚠️ 连接成功，但响应格式异常')
+      }
+    } catch (error) {
+      console.error('API连接测试失败:', error)
+      new Notice(`❌ 连接失败: ${error.message}`)
+    }
   }
 }

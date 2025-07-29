@@ -408,8 +408,32 @@ export default class OmnivorePlugin extends Plugin {
       console.log('obsidian-omnivore sync completed', this.settings.syncAt)
       manualSync && new Notice('🎉 Sync completed')
     } catch (e) {
-      new Notice('Failed to fetch items')
-      console.error(e)
+      console.error('Sync error:', e)
+      
+      // 提供更详细的错误信息
+      let errorMessage = '同步失败'
+      
+      if (e.message?.includes('服务器错误 (500)')) {
+        errorMessage = '服务器错误: 请检查API密钥和服务器状态'
+      } else if (e.message?.includes('认证失败')) {
+        errorMessage = '认证失败: 请检查API密钥'
+      } else if (e.message?.includes('网络错误')) {
+        errorMessage = '网络错误: 请检查网络连接'
+      } else if (e.message?.includes('API endpoint is not configured')) {
+        errorMessage = 'API端点未配置: 请在设置中配置API端点'
+      } else if (e.message?.includes('Unexpected server error')) {
+        errorMessage = '服务器内部错误: 请稍后重试或联系服务器管理员'
+      }
+      
+      new Notice(`❌ ${errorMessage}`)
+      
+      // 在控制台显示详细错误信息
+      console.error('详细错误信息:', {
+        message: e.message,
+        endpoint: this.settings.endpoint,
+        hasApiKey: !!this.settings.apiKey,
+        stack: e.stack
+      })
     } finally {
       this.settings.syncing = false
       await this.saveSettings()
